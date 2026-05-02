@@ -117,6 +117,10 @@ export class SkiaImageLoader {
 
   private loadHtmlImage(src: string): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
+      if (typeof Image === 'undefined') {
+        reject(new Error('Image is not available in this environment'));
+        return;
+      }
       const img = new Image();
       if (/^https?:\/\//i.test(src)) {
         img.crossOrigin = 'anonymous';
@@ -129,6 +133,7 @@ export class SkiaImageLoader {
 
   /** Rasterize an HTML Image to Canvas 2D, then convert to CanvasKit Image. */
   private htmlImageToSkia(htmlImg: HTMLImageElement): SkImage | null {
+    if (typeof document === 'undefined') return null;
     const sourceW = htmlImg.naturalWidth || htmlImg.width;
     const sourceH = htmlImg.naturalHeight || htmlImg.height;
     if (sourceW <= 0 || sourceH <= 0) return null;

@@ -62,3 +62,11 @@ export { sanitizeSvgPath, hasInvalidNumbers, tryManualPathParse } from './path-u
 // ---- Thumbnail helper (Phase 7c) ----
 export { renderNodeThumbnail } from './render-node-thumbnail.js';
 export type { ThumbnailContext } from './render-node-thumbnail.js';
+
+// ---- Headless export (Node.js / CLI) ----
+export { renderDocumentPage } from './headless-export.js';
+export type {
+  HeadlessExportFormat,
+  HeadlessExportOptions,
+  HeadlessExportResult,
+} from './headless-export.js';

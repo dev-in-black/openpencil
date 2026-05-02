@@ -435,6 +435,9 @@ export class SkiaTextRenderer {
     h: number,
     opacity: number,
   ) {
+    // Canvas 2D is not available in Node.js / headless environments.
+    if (typeof document === 'undefined') return;
+
     const ck = this.ck;
     const tNode = node as TextNode;
     const content =

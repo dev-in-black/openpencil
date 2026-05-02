@@ -97,6 +97,12 @@ Pages:
   op page reorder <id> <index>
   op page duplicate <id>
 
+Export:
+  op export_page [--file F] [--page P] [--out file.png] [--format png|jpeg|webp] [--multiplier N] [--font-path D]
+    --file       Headless: render directly from .op file (no server needed)
+    --font-path  Directory of .woff2 font files (auto-detected in monorepo)
+    (no --file)  Server: render via active /editor tab (requires running instance)
+
 Import:
   op import:svg <file.svg>      Import SVG file
   op import:figma <file.fig>    Import Figma file
@@ -396,6 +402,20 @@ async function main(): Promise<void> {
             `Unknown page subcommand: "${subCmd}". Use: list, add, remove, rename, reorder, duplicate`,
           );
       }
+      break;
+    }
+
+    // --- Export ---
+    case 'export_page': {
+      const { cmdExportPage } = await import('./commands/export');
+      await cmdExportPage(positionals, {
+        file: globalFlags.file,
+        page: globalFlags.page,
+        out: flags.out as string | undefined,
+        format: flags.format as string | undefined,
+        multiplier: flags.multiplier as string | undefined,
+        fontPath: flags['font-path'] as string | undefined,
+      });
       break;
     }
 

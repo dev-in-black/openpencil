@@ -19,7 +19,8 @@ import type { RenderNode } from './types.js';
 // ---------------------------------------------------------------------------
 
 let _measureCtx: CanvasRenderingContext2D | null = null;
-function getMeasureCtx(): CanvasRenderingContext2D {
+function getMeasureCtx(): CanvasRenderingContext2D | null {
+  if (typeof document === 'undefined') return null;
   if (!_measureCtx) {
     const c = document.createElement('canvas');
     _measureCtx = c.getContext('2d')!;
@@ -78,6 +79,16 @@ export function premeasureTextHeights(nodes: PenNode[]): PenNode[] {
           tNode.fontFamily ??
           'Inter, -apple-system, "Noto Sans SC", "PingFang SC", system-ui, sans-serif';
         const ctx = getMeasureCtx();
+        if (!ctx) {
+          // No Canvas 2D available (e.g. Node.js headless) — skip text pre-measurement.
+          // Text heights fall back to estimates from pen-core; minor layout inaccuracy may occur.
+          if ('children' in result && result.children) {
+            const children = result.children;
+            const measured = premeasureTextHeights(children);
+            if (measured !== children) result = { ...result, children: measured } as unknown as PenNode;
+          }
+          return result;
+        }
         ctx.font = `${fontWeight} ${fontSize}px ${cssFontFamily(fontFamily)}`;
 
         const wrapWidth = (tNode.width as number) + fontSize * 0.2;
