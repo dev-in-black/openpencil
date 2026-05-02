@@ -4,6 +4,13 @@ import { readFile, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
+let remoteUrl: string | null = null;
+
+/** Override the app URL for remote server connections. Call before any requireApp(). */
+export function setRemoteUrl(url: string): void {
+  remoteUrl = url.replace(/\/$/, '');
+}
+
 const PORT_FILE_DIR = '.openpencil';
 const PORT_FILE_NAME = '.port';
 const PORT_FILE_PATH = join(homedir(), PORT_FILE_DIR, PORT_FILE_NAME);
@@ -47,6 +54,18 @@ export interface AppInfo {
 
 /** Read port file and return app info, or null if no running instance. */
 export async function getAppInfo(): Promise<AppInfo | null> {
+  if (remoteUrl) {
+    // Probe the remote URL directly — no port file or PID check.
+    try {
+      const res = await fetch(`${remoteUrl}/api/mcp/server`, {
+        signal: AbortSignal.timeout(3000),
+      });
+      if (res.ok) return { port: 0, pid: 0, timestamp: 0, url: remoteUrl };
+    } catch {
+      // Remote not reachable.
+    }
+    return null;
+  }
   try {
     const raw = await readFile(PORT_FILE_PATH, 'utf-8');
     const { port, pid, timestamp } = JSON.parse(raw) as {
@@ -74,6 +93,7 @@ export async function getAppInfo(): Promise<AppInfo | null> {
 
 /** Get app URL or throw if not running. */
 export async function requireApp(): Promise<string> {
+  if (remoteUrl) return remoteUrl;
   const info = await getAppInfo();
   if (!info) {
     throw new Error('No running OpenPencil instance found. Run `openpencil start` first.');

@@ -116,6 +116,7 @@ Arguments that accept JSON or DSL can be passed as:
   -                 Read from stdin (e.g. cat design.txt | op design -)
 
 Global Flags:
+  --url <url>       Remote server URL (e.g. https://myserver.example.com)
   --file <path>     Target .op file (default: live canvas)
   --page <id>       Target page ID
   --pretty          Human-readable JSON output
@@ -128,6 +129,10 @@ Global Flags:
 async function main(): Promise<void> {
   const { command, positionals, flags } = parseArgs(process.argv);
 
+  if (flags.url) {
+    const { setRemoteUrl } = await import('./connection');
+    setRemoteUrl(flags.url as string);
+  }
   if (flags.pretty) setPretty(true);
   if (flags.help || command === 'help') {
     process.stdout.write(HELP);
